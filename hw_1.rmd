@@ -1,0 +1,90 @@
+---
+title: "CSSS HW 1"
+author: "Chris Hess"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE, echo=F, warning=F}
+#packages
+library(tidyverse)
+library(curl)
+library(xts)
+library(forecast) #autoplot() for ACF/PACF functions w/o stupid lag=0
+
+#data from Chris's website
+prob2 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW.csv"))
+prob3 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW2.csv"))
+
+#function to iterate on that produces the TS diagnostics
+testTS <- function(df, series = NULL, detrend = F, seasonal_lag = F){
+  
+  #make sure class is correct
+  ts <- ts(df[[series]], frequency = 12)
+  
+  #produce if `detrend` arg specified
+  if(detrend == T){
+    diff <- diff.xts(ts)
+    diff_plot <- autoplot(diff) + 
+      theme_minimal()
+  }
+  
+  #produce if `seasonal_lag` arg specified
+  if(seasonal_lag == T){
+    seas_adj <- diff.xts(ts, lag = 12)
+    seas_adj_plot <- autoplot(seas_adj) +
+      theme_minimal()
+  }
+
+  #save all plots to function environ for later use
+  ts_plot <- autoplot(ts) + 
+      theme_minimal()
+  
+  acf_plot <- ggAcf(ts) + 
+    theme_minimal() + 
+    labs(title = "")
+  
+  pacf_plot <- ggPacf(ts) + 
+    theme_minimal() + 
+    labs(title = "")
+
+  #later use (i.e print for rmarkdown "asis" knitting)
+  cat("### Time-series:", series, sep = " ")  
+  cat("\n\n")
+  cat("#### Time-series plot", sep = "\n")
+  print(ts_plot)
+  cat("\n\n", sep = "\n")
+  cat("\n\n", sep = "\n")
+  if(detrend){
+    cat("#### Differenced Time-series plot", sep = "\n")
+    print(diff_plot)
+    cat("\n\n", sep = "\n")
+    cat("\n\n", sep = "\n")
+  }
+  if(seasonal_lag){
+    cat("#### Seasonally-Adjusted Time-series plot", sep = "\n")
+    print(seas_adj_plot)
+    cat("\n\n", sep = "\n")
+    cat("\n\n", sep = "\n")
+  }
+  cat("#### Autocorrelation Function (ACF) plot", sep = "\n")
+  print(acf_plot)
+  cat("\n\n", sep = "\n")
+  cat("\n\n", sep = "\n")
+  cat("#### Partial Autocorrelation Function (PACF) plot", sep = "\n")
+  print(pacf_plot)
+  cat("\n\n", sep = "\n")
+  cat("\n\n", sep = "\n")
+}
+```
+
+## Problem 2
+
+```{r, results = "asis"}
+testTS(prob2, "a")
+```
+
+```{r, results = "asis"}
+testTS(prob2, "b")
+```
