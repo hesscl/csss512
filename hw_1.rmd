@@ -4,6 +4,7 @@ author: "Chris Hess"
 output: 
   html_document:
     toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE, echo=F, warning=F}
@@ -16,75 +17,499 @@ library(forecast) #autoplot() for ACF/PACF functions w/o stupid lag=0
 #data from Chris's website
 prob2 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW.csv"))
 prob3 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW2.csv"))
-
-#function to iterate on that produces the TS diagnostics
-testTS <- function(df, series = NULL, detrend = F, seasonal_lag = F){
-  
-  #make sure class is correct
-  ts <- ts(df[[series]], frequency = 12)
-  
-  #produce if `detrend` arg specified
-  if(detrend == T){
-    diff <- diff.xts(ts)
-    diff_plot <- autoplot(diff) + 
-      theme_minimal()
-  }
-  
-  #produce if `seasonal_lag` arg specified
-  if(seasonal_lag == T){
-    seas_adj <- diff.xts(ts, lag = 12)
-    seas_adj_plot <- autoplot(seas_adj) +
-      theme_minimal()
-  }
-
-  #save all plots to function environ for later use
-  ts_plot <- autoplot(ts) + 
-      theme_minimal()
-  
-  acf_plot <- ggAcf(ts) + 
-    theme_minimal() + 
-    labs(title = "")
-  
-  pacf_plot <- ggPacf(ts) + 
-    theme_minimal() + 
-    labs(title = "")
-
-  #later use (i.e print for rmarkdown "asis" knitting)
-  cat("### Time-series:", series, sep = " ")  
-  cat("\n\n")
-  cat("#### Time-series plot", sep = "\n")
-  print(ts_plot)
-  cat("\n\n", sep = "\n")
-  cat("\n\n", sep = "\n")
-  if(detrend){
-    cat("#### Differenced Time-series plot", sep = "\n")
-    print(diff_plot)
-    cat("\n\n", sep = "\n")
-    cat("\n\n", sep = "\n")
-  }
-  if(seasonal_lag){
-    cat("#### Seasonally-Adjusted Time-series plot", sep = "\n")
-    print(seas_adj_plot)
-    cat("\n\n", sep = "\n")
-    cat("\n\n", sep = "\n")
-  }
-  cat("#### Autocorrelation Function (ACF) plot", sep = "\n")
-  print(acf_plot)
-  cat("\n\n", sep = "\n")
-  cat("\n\n", sep = "\n")
-  cat("#### Partial Autocorrelation Function (PACF) plot", sep = "\n")
-  print(pacf_plot)
-  cat("\n\n", sep = "\n")
-  cat("\n\n", sep = "\n")
-}
 ```
 
 ## Problem 2
 
-```{r, results = "asis"}
-testTS(prob2, "a")
+### Part a
+
+I would conclude a is a MA(1), $\Psi = 0.5$. First, the time-series plot shows it the DGP quickly mean reverting. According to the decomposition model there's no clear seasonal pattern or trend. Looking at the ACF there's no geometric decline as would be expected. I used `arima.sim` to simulate a MA(1), $\Psi = 0.5$ process and the result is similar in its temporal structure though the precise shocks and levels over time differ.
+
+```{r, prob2 pt a}
+#pull time-series a
+let <- "a"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#time-series plot
+autoplot(ts_test) +
+  theme_minimal()
+
+#decomposition model
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+#ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#PACF
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot simulated ts: MA(1), psi = .5, T=100
+autoplot(arima.sim(list(order = c(0, 0, 1), ma = 0.5), n = 100)) 
 ```
 
-```{r, results = "asis"}
-testTS(prob2, "b")
+\newpage
+
+### Part b
+
+There appears to be a seasonal pattern looking at the time-series plot. Decomposing the time-series into its seasonal component shows that the end of each year spikes to high levels, and then reverts back to a very small/negligble seasonal effect. Plotting the ACF before removing the additive seasonal means shows a spike in autocorrelation at lag 12, corresponding to the same month of the last year. After removing the seasonal average from each observation, the ACF shows no substantial autocorrelation.
+
+```{r, prob2 pt b}
+#pull time-series b
+let <- "b"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#plot time-series
+autoplot(ts_test) +
+  theme_minimal()
+
+#plot decomposition model
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+#plot unadjusted ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#store decomposition model
+decomp <- decompose(ts_test, type = "additive")
+
+#seasonally adjust (y - seasonal mean for y)
+ts_test <- ts_test - decomp$seasonal
+
+#plot adjusted ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
 ```
+
+\newpage
+
+### Part c
+
+There appears to be a deterministic trend according to the time-series plot and decomposition model. The ACF has some semblance to an AR process, albeit without a clearly geometric decline in autocorrelation as might be expected. Detrending the data using a linear model shows that the removing deterministic trend explains away the early trappings of autoregression (i.e. the detrended time-series looks like white noise, ACF has no structure).
+
+```{r, prob2 pt c}
+#pull time-series c
+let <- "c"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#plot time-series
+autoplot(ts_test) +
+  theme_minimal()
+
+#plot decomposition model
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+#plot observed time-series 
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#looks like trend, let's estimate the monthly trend
+time <- 1:100
+lm_c <- lm(ts_test ~ time)
+#summary(lm_c) #about .03 increase per month
+
+#subtract estimated trend from time-series
+ts_test <- ts_test - lm_c$coefficients[2]*time
+
+#plot de-trended series
+autoplot(ts_test) +
+  labs(title = "De-trended time-series C") +
+  theme_minimal()
+
+#plot de-trended ACF
+ggAcf(ts_test) + 
+  labs(title = "De-trended ACF for time-series C") +
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part d
+
+```{r, prob2 pt d}
+let <- "d"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part e
+
+```{r, prob2 pt e}
+let <- "e"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part f
+
+```{r, prob2 pt f}
+let <- "f"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part g
+
+```{r, prob2 pt g}
+let <- "g"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part h
+
+```{r, prob2 pt h}
+let <- "h"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part i
+
+```{r, prob2 pt i}
+let <- "i"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part j
+
+```{r, prob2 pt j}
+let <- "j"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part k
+
+```{r, prob2 pt k}
+let <- "k"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part l
+
+```{r, prob2 pt l}
+let <- "l"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+
+### Part m
+
+```{r, prob2 pt m}
+let <- "m"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part n
+
+```{r, prob2 pt n}
+let <- "n"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part o
+
+```{r, prob2 pt o}
+let <- "o"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part p
+
+```{r, prob2 pt p}
+let <- "p"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part q
+
+```{r, prob2 pt q}
+let <- "q"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+### Part r
+
+```{r, prob2 pt r}
+let <- "r"
+
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+autoplot(ts_test) +
+  theme_minimal()
+
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
+
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+```
+
+\newpage
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
