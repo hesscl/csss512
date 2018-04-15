@@ -2,10 +2,8 @@
 title: "CSSS 512 HW 1"
 author: "Chris Hess"
 output: 
-  html_document:
+  pdf_document:
     toc: true
-    toc_float: true
-    theme: "simplex"
 ---
 
 ```{r setup, include=FALSE, echo=F, warning=F}
@@ -17,24 +15,22 @@ library(latex2exp)
 library(forecast) #autoplot() for ACF/PACF functions w/o stupid lag=0
 
 #data from Chris's website
-prob2 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW.csv"))
-prob3 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW2.csv"))
+prob1 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW.csv"))
+prob2 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW2.csv"))
 ```
-
-Skipping problem 1, no review needed...
 
 <br><br>
 
-## Problem 2
+## Problem 1
 
 ### Part a
 
-The time-series plot shows that the DGP reverts to its mean, but also has shocks that linger for a perior or two. According to the decomposition model there's no clear seasonal pattern or trend. Looking at the ACF there's no geometric decline as would be expected in the presence of autocorrelation. An MA(2) with a small positive first-order coefficient but relatively large negative second-order coefficient captures the observed characteristic where shocks that last a period extra but do not have a lingering effect like with autoregression. The ACF and PACF of the time-series show a small positive spike for L1, but a substantial negative spike for L2 ($\approx 0.5$).  I used `arima.sim` to simulate a MA(1), $\psi_1 = 0.1, \psi_2 = -0.5$ process and the result is similar in its temporal structure though the precise shocks and levels over time differ.
+The time-series plot shows that the DGP reverts to its mean, but also has shocks that linger for a period or two. According to the decomposition model there's no clear seasonal pattern or trend. Looking at the ACF there's no geometric decline as would be expected in the presence of autocorrelation. An MA(2) with a small positive first-order coefficient but relatively large negative second-order coefficient captures the observed characteristic where shocks that last a period extra but do not have a lingering effect like with autoregression. The ACF and PACF of the time-series show a small positive spike for L1, but a substantial negative spike for L2 ($\approx 0.5$).  I used `arima.sim` to simulate a MA(2), $\psi_1 = 0.15, \psi_2 = -0.5$ process and the result is similar in its temporal structure though the precise shocks and levels over time differ.
 
-```{r, prob2 pt a}
+```{r, prob1 pt a}
 #pull time-series a
 let <- "a"
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
 #time-series plot
 autoplot(ts_test) +
@@ -53,11 +49,11 @@ autoplot(ts_test) +
 #PACF
 #ggPacf(ts_test) + 
 #  theme_minimal() + 
-# labs(title = "")
+#  labs(title = "")
 
 #plot simulated ts: MA(1), psi = .75, T=100
-autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.1, -.5)), n = 100)) +
-  labs(title = TeX("Simulated MA(2), $\\psi_1 = 0.1, \\psi_2 = -0.5$")) +
+autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.15, -0.5)), n = 100)) +
+  labs(title = TeX("Simulated MA(2), $\\psi_1 = 0.15, \\psi_2 = -0.5$")) +
   theme_minimal()
 ```
 
@@ -67,10 +63,10 @@ autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.1, -.5)), n = 100)) +
 
 There appears to be a seasonal pattern looking at the time-series plot. Decomposing the time-series into its seasonal component shows that the end of each year spikes to high levels, and then reverts back to a very small/negligble seasonal effect. Plotting the ACF before removing the additive seasonal means shows a spike in autocorrelation at lag 12, corresponding to the same month of the last year. After removing the seasonal average from each observation, the ACF shows no substantial autocorrelation.
 
-```{r, prob2 pt b}
+```{r, prob1 pt b}
 #pull time-series b
 let <- "b"
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
 #autoplot(ts_test) +
@@ -108,10 +104,10 @@ autoplot(ts_test) +
 
 There appears to be a deterministic trend according to the time-series plot and decomposition model. The ACF has some semblance to an AR process, albeit without a clearly geometric decline in autocorrelation as might be expected. Detrending the data using a linear model shows that the removing deterministic trend explains away the early trappings of autoregression (i.e. the detrended time-series looks like white noise, ACF has no structure).
 
-```{r, prob2 pt c}
+```{r, prob1 pt c}
 #pull time-series c
 let <- "c"
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
 autoplot(ts_test) +
@@ -151,12 +147,12 @@ autoplot(ts_test) +
 
 ### Part d
 
-There seems to be an autoregressive or moving-average process using the time-series plot as a first-look, but there is no trend. The decomposition model also suggests no trend, and though the seasonal pattern is plausible (i.e. summer months dip, rises through fall) in the absence of any notion of what the underlying time-series it does not seem to explain much overall variation in the series. While plotting the ACF of the time-series shows a spike at L1, the effect of the prior period dies off quickly (evidence in favor of MA). The PACF shows the L1 spike is about 0.5, though there are also spikes at L2 and L3 (with negative and positive signs, respectively). Based off of the inconsistent evidence of autocorrelation and quick mean reversion, a moving average process seems most likely. I simulated an MA(1) with $\psi = 0.5$, MA(2) with $\psi_1 = 0.5, \psi_2 = -0.25$ to investigate the DGP further. Both have a positive first-order term because a shock in the prior period lingers for another period, but the MA(2) has a second-order negative term driving the time-series back to the mean faster. Based off of my inspection of these simulations I think the MA(2) is most appropriate.
+There seems to be an autoregressive or moving-average process using the time-series plot as a first-look, but there is no trend. The decomposition model also suggests no trend, and though the seasonal pattern is plausible (i.e. summer months dip, rises through fall) in the absence of any notion of what the underlying time-series it does not seem to explain much overall variation in the series. While plotting the ACF of the time-series shows a spike at L1, the effect of the prior period dies off quickly (evidence in favor of MA). The PACF shows the L1 spike is about 0.5, though there are also spikes at L2 and L3 (with negative and positive signs, respectively). Based off of the inconsistent evidence of autocorrelation and quick mean reversion, a moving average process seems most likely. I simulated an MA(1) with $\psi = 0.5$, MA(2) with $\psi_1 = 0.5, \psi_2 = -0.25$ to investigate the DGP further. Both have a positive first-order term because a shock in the prior period lingers for another period, but the MA(2) has a second-order negative term driving the time-series back to the mean faster. Based off of my inspection of these simulations I think the MA(1) with $\psi = 0.5$ is most appropriate.
 
-```{r, prob2 pt d}
+```{r, prob1 pt d}
 #pull time-series d
 let <- "d"
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
 autoplot(ts_test) +
@@ -178,12 +174,14 @@ autoplot(ts_test) +
 #  labs(title = "")
 
 #plot simulated ts: MA(1), psi = .5, T=100
-#autoplot(arima.sim(list(order = c(0, 0, 1), ma = c(0.5)), n = 100))
+autoplot(arima.sim(list(order = c(0, 0, 1), ma = c(0.5)), n = 100)) +
+  theme_minimal() +
+  labs(title = TeX("Simulated MA(1), $\\psi_1 = 0.5"))
+
 
 #plot simulated ts: MA(2), phi = .5, T=100
-autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.5, -0.25)), n = 100)) +
-  theme_minimal() +
-  labs(title = TeX("Simulated MA(2), $\\phi_1 = 0.5, \\phi_2 = -0.25$"))
+#autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.5, -0.25)), n = 100)) +
+#  theme_minimal()
 ```
 
 <br><hr><br>
@@ -192,10 +190,10 @@ autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.5, -0.25)), n = 100)) +
 
 The time-series plot gives pretty clear indication of autocorrelation, since high values beget high values, while low values similarly follow preceding low values. The decomposition model indicates an unlikely U-shaped seasonal variation that otherwise does not fit the time-series, also shows no evidence of trend. PLotting the ACF, however, shows a geometric decline in autocorrelation that extends out to about L3 at substantial levels. The PACF suggests that one lag is sufficient for the series' autocorrelation, and that the AR(1) has a plausible coefficient of $\phi = 0.7$
 
-```{r, prob2 pt e}
+```{r, prob1 pt e}
 #pull time-series e
 let <- "e"
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series e
 #autoplot(ts_test) +
@@ -206,7 +204,7 @@ ts_test <- ts(prob2[[let]], frequency = 12)
 
 ggAcf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+  labs(title = "ACF of time-series e")
 
 #ggPacf(ts_test) + 
 #  theme_minimal() + 
@@ -217,25 +215,25 @@ ggAcf(ts_test) +
 
 ### Part f
 
-Seasonal
+The time-series plot does not indicate much by itself, though combined with the decomposition model it is a little clearer that there is some amount of seasonality to each year observed in the time-series. After a bump upward in the first three months there is a sharp dip downward for three monthly periods followed by a return to relatively normal levels for the next 6 months. After adjusting the time-series with the monthly averages, the data look mostly like white noise. The ACF for the adjusted series show a modest negative spike in autocorrelation at L12, but it is reasonable that this could be due to chance too (and this is suspected given the provided information about the time-series).
 
-```{r, prob2 pt f}
+```{r, prob1 pt f}
 #pull time-series f
 let <- "f"
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
 #autoplot(ts_test) +
 #  theme_minimal()
 
 #plot decomposition model
-#autoplot(decompose(ts_test, type = "additive")) + 
-#  theme_minimal()
+autoplot(decompose(ts_test, type = "additive")) + 
+  theme_minimal()
 
 #plot ACF
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 
 #plot PACF
 #ggPacf(ts_test) + 
@@ -252,81 +250,99 @@ ts_test <- ts_test - decomp$seasonal
 autoplot(ts_test) +
   labs(title = "Seasonally-adjusted time-series f") +
   theme_minimal()
+
+#ggAcf(ts_test) +
+#  labs(title = "Seasonally-adjusted ACF for time-series f") +
+#  theme_minimal()
 ```
 
 <br><hr><br>
 
 ### Part g
 
-AR(1)
+This time-series seems to be an AR(1) process, particularly given the ACF and PACF plots. The plotted time-series shows that the time-series will stay outward from the mean for a while (positive in the middle of the series, negative just after). The ACF shows a geometric decline in autocorrelation as would be expected in the presence of an AR(p) process. Further, the PACF only has a substantial spike at L1 (the very high order ones with values above $|0.25|$ are inconsisitent) and reaches a PACF value of about .75. I simulated a AR(1) with $\phi = 0.75$ and given the PACF value for L1, and the resulting time series has similar characteristics.
 
-```{r, prob2 pt g}
+```{r, prob1 pt g}
 let <- "g"
 
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-autoplot(ts_test) +
-  theme_minimal()
+#autoplot(ts_test) +
+#  theme_minimal()
 
-autoplot(decompose(ts_test, type = "additive")) + 
-  theme_minimal()
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
 
 ggAcf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+  labs(title = "ACF of time-series g")
 
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggPacf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
+
+autoplot(arima.sim(list(order = c(1, 0, 0), ar = c(0.75)), n = 100)) +
+  theme_minimal() +
+  labs(title = TeX("Simulated AR(1), $\\phi = 0.75$"))
 ```
 
 <br><hr><br>
 
 ### Part h
 
-MA(1)
+The plotted time-series does not indicate a trend, seasonal structure or much notion of autocorrelation since shocks die out farily quickly. This leads to a series that mostly stays around its means, though the magnitude of the shocks can be fairly strong. The ACF only has a significant lag at L1, so the cumulative evidence points to MA as the temporal characteristic of the DGP. I think a MA(2) with a moderate postive first-order (0.4) and weaker negative second-order (-0.2) captures the observed time-series h because there are pretty large shocks away from the mean, though they revert back within a few periods.
 
-```{r, prob2 pt h}
+```{r, prob1 pt h}
 #pull time-series h
 let <- "h"
-ts_test <- ts(prob2[[let]], frequency = 12)
+ts_test <- ts(prob1[[let]], frequency = 12)
 
+#plot the time-series
 autoplot(ts_test) +
-  theme_minimal()
+  theme_minimal() +
+  labs(title = "Observed time-series h") 
 
-autoplot(decompose(ts_test, type = "additive")) + 
-  theme_minimal()
+#plot the decomposition
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
 
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
-
-#ggPacf(ts_test) + 
+#plot the ACF
+#ggAcf(ts_test) + 
 #  theme_minimal() + 
 #  labs(title = "")
+
+#plot simulated MA(2)
+autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.4, -0.2)), n = 100)) +
+  theme_minimal() +
+  labs(title = TeX("Simulated MA(2), $\\psi_1 = 0.4, \\psi_2 = -0.2$")) 
 ```
 
 <br><hr><br>
 
 ### Part i
 
-white noise
+This time-series does not scream one type of process over the other as far as AR or MA are concerned, though there is clearly no trend or cycle. The ACF plot suggests a weak negative AR(1) process (-0.2) would be most appropriate. The PACF has a significant lag at L6, but this seems likely to be due to chance since there's not much of a cyclical structure otherwise.
 
-```{r, prob2 pt i}
+```{r, prob1 pt i}
+#pull time-series i
 let <- "i"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot the time-series
 autoplot(ts_test) +
-  theme_minimal()
+  theme_minimal() +
+  labs(title = "Observed time-series i")
 
-autoplot(decompose(ts_test, type = "additive")) + 
-  theme_minimal()
+#plot the decomposition
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
 
+#plot the ACF
 ggAcf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
 
+#plot the PACF
 ggPacf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
@@ -336,78 +352,116 @@ ggPacf(ts_test) +
 
 ### Part j
 
-seasonal
+Plotting time-series j shows a clear seasonal structure with no trend. The decomposition model shows a dip in the second month of each year to relatively low levels, then the next three months have higher levels, then there is a nother slightly longer dip and lastly a return to normal levels again. Though this seasonal structure is a little odd, it doesn't seem implausble if there are a couple months of the year where levels are just exceptionally low. The strong spike in autocorrelation at L12 in the ACF plot also corroborates the seasonal structure. After adjusting with the estimated seasonal means, the time-series mostly looks like white noise.
 
-```{r, prob2 pt j}
+```{r, prob1 pt j}
+#pull time-series j
 let <- "j"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot the time-series
 autoplot(ts_test) +
+  labs(title = "Observed time-series j") +
   theme_minimal()
 
-autoplot(decompose(ts_test, type = "additive")) + 
+#plot the decomposition
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
+
+#plot the ACF
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
+
+#store decomposition model
+decomp <- decompose(ts_test, type = "additive")
+
+#seasonally adjust (y - seasonal mean for y)
+ts_test <- ts_test - decomp$seasonal
+
+#plot adjusted time-series
+autoplot(ts_test) +
+  labs(title = "Seasonally-adjusted time-series j") +
   theme_minimal()
 
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
-
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#plot the adjusted ACF
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 ```
 
 <br><hr><br>
 
 ### Part k
 
-negative deterministic trend
+The time-series plot clearly shows a deterministic negative trend, which the decomposition model also points to. After detrending the time-series, the resulting series is mostly white noise. There was early evidence of autocorrelation in the unadjusted series, but after detrending the ACF shows no substantial autocorrelation at any lag.
 
-```{r, prob2 pt k}
+```{r, prob1 pt k}
+#pull time series k
 let <- "k"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot the time-series
 autoplot(ts_test) +
+  labs(title = "Observed time-series k") +
   theme_minimal()
 
-autoplot(decompose(ts_test, type = "additive")) + 
+#plot the decomposition
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
+
+#plot the ACF
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
+
+#looks like trend, let's estimate the monthly trend
+time <- 1:100
+lm_k <- lm(ts_test ~ time)
+#summary(lm_k) #about -.05 increase per month
+
+#subtract estimated trend from time-series
+ts_test <- ts_test - lm_k$coefficients[2]*time
+
+#plot de-trended series
+autoplot(ts_test) +
+  labs(title = "De-trended time-series k") +
   theme_minimal()
 
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
-
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#no autocorrelation after detrending
+#ggAcf(ts_test) +
+#  theme_minimal()
 ```
 
 <br><hr><br>
 
 ### Part l
 
-AR(1)
+The time-series plot suggests some it _may_ be a moving average process. However, the ACF does not provide the expected geometric decline in autocorrelation for an AR(p) process, or show any autocorrelation in the short term as might be expected for moving-averages. Further, the PACF does not have a substantial lag anywhere from L1 to L24. Based on all the evidence gathered, the most appropriate conclusion seems to be that this time-series is stationary white noise.
 
-```{r, prob2 pt l}
+```{r, prob1 pt l}
+#pull time-series l
 let <- "l"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot the time-series
 autoplot(ts_test) +
-  theme_minimal()
+  theme_minimal() +
+  labs(title = "Observed time-series l")
 
-autoplot(decompose(ts_test, type = "additive")) + 
-  theme_minimal()
+#plot the decomposition
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
 
+#plot the ACF
 ggAcf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+  labs(title = "ACF for time-series l")
 
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#plot the PACF
+#ggPacf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 ```
 
 <br><hr><br>
@@ -416,50 +470,84 @@ ggPacf(ts_test) +
 
 ### Part m
 
-seasonal, maybe weak negative MA
+There seems to be a seasonal structure based on the time-series plot, but otherwise it's hard to make out much else about the DGP. The ACF has significant spikes at 12 and 24, and the decomposition model suggests a plausible seasonal pattern of higher levels throughout the middle of the year and lower levels in the winter that bottom out in February (this of course assumes that the time series starts at Jan year 1). The adjusted time-series still shows evidence of short-term autocorrelation, with a postiive L1 according to the PACF and maybe a negative L2. An MA(2) process with $\psi_1 = 0.5, \psi_2 = -0.45$ characterizes the seasonally-adjusted time-series because there are shocks that last a couple periods (i.e. series stays above/below mean for a few periods), but the series does not drift much at all from the 0 mean overall (even in the T=100 sample).
 
-
-```{r, prob2 pt m}
+```{r, prob1 pt m}
+#pull time-series m
 let <- "m"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
-autoplot(ts_test) +
-  theme_minimal()
+#plot the time-series
+#autoplot(ts_test) +
+#  theme_minimal()
 
 autoplot(decompose(ts_test, type = "additive")) + 
   theme_minimal()
 
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
+
+#store decomposition model
+decomp <- decompose(ts_test, type = "additive")
+
+#seasonally adjust (y - seasonal mean for m)
+ts_test <- ts_test - decomp$seasonal
+
+#plot adjusted time-series
+autoplot(ts_test) +
+  labs(title = "Seasonally-adjusted time-series m") +
+  theme_minimal()
+
+#seasonally-adjusted ACF
 ggAcf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+  labs(title = "ACF for seasonally-adjusted time-series m")
 
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#seasonally-adjusted PACF
+#ggPacf(ts_test) +
+#  theme_minimal() +
+#  labs(title = "PACF for seasonally-adjusted time-series m")
+
+#plot the simulated MA(2), psi_1 = 0.5, psi_2 = -.45
+autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.5, -0.45)), n = 100)) +
+  theme_minimal() +
+  labs(title = TeX("Simulated MA(2), $\\psi_1 = 0.5, \\psi_2 = -0.45$"))
 ```
 
 <br><hr><br>
 
 ### Part n
 
-negative trend, need to diagnose others with detrended data 
+The time-series plot shows a clear negative trend over the course of the series, and this conclusion is supported by the decomposition model too where the trend component is negative. After detrending the time-series using the estimated monthly decrease from a linear model, the resulting series still shows some evidence of autoregression based on the ACF having a geometric decline in autocorrelation out to about L5. The PACF shows no significant autocorrelation past L1, so an AR(1) with $\phi = 0.45$ seems appropriate for this time-series.
 
-```{r, prob2 pt n}
+```{r, prob1 pt n}
+#pull time-series n
 let <- "n"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
+#plot the time-series
+#autoplot(ts_test) +
+#  theme_minimal()
 
-autoplot(ts_test) +
-  theme_minimal()
-
+#plot the decomposition model
 autoplot(decompose(ts_test, type = "additive")) + 
   theme_minimal()
 
+#looks like trend, let's estimate the monthly trend
+time <- 1:100
+lm_n <- lm(ts_test ~ time)
+#summary(lm_n) #about -.075 increase per month
+
+#subtract estimated trend from time-series
+ts_test <- ts_test - lm_n$coefficients[2]*time
+
+#still autocorrelation in the detrended data
 ggAcf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+   labs(title = "")
 
+#looks like AR(1) is apprporiate
 ggPacf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
@@ -469,24 +557,41 @@ ggPacf(ts_test) +
 
 ### Part o
 
-seasonal, maybe AR
+This time-series shows a weak positive trend and some seasonality according to the time-series plot and decomposition model. The decomposition shows that in two years cycles there is a pretty substantially dip in the levels in the middle of the second year, around which levels keep a pretty normal level. After removing both the trend and the seasonal cycle there does not appear to be any remaining autocorrelation in the series.
 
-```{r, prob2 pt o}
+```{r, prob1 pt o}
+#pull time-series o
 let <- "o"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot time-series
 autoplot(ts_test) +
   theme_minimal()
 
+#plot decomposition model
 autoplot(decompose(ts_test, type = "additive")) + 
   theme_minimal()
 
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#store decomposition model
+decomp <- decompose(ts_test, type = "additive")
 
-ggPacf(ts_test) + 
+#seasonally adjust (y - seasonal mean for m)
+ts_test <- ts_test - decomp$seasonal
+
+#looks like trend, let's estimate the monthly trend
+time <- 1:100
+lm_o <- lm(ts_test ~ time)
+#summary(lm_o) #about .02 increase per month
+
+#subtract estimated trend from seasonally-adjusted time-series
+ts_test <- ts_test - lm_o$coefficients[2]*time
+
+#plot detrended, seasonally-adjusted time-series
+autoplot(ts_test) +
+  theme_minimal()
+
+#no autocorrelation
+ggAcf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
 ```
@@ -495,23 +600,40 @@ ggPacf(ts_test) +
 
 ### Part p
 
-seasonal, maybe MA(1)
+This time-series shows seasonality and trend in its plot according to time and in the decomposition model plots. Every years there is a cycle, peaking in the middle of the year in the cycle and bottoming out near the end. After removing the cycle and the trend, there is still significant autocorrelation, evidenced by the geometrically declining values on the ACF. The PACF has a significant spike of around 0.85 at L1, but otherwise shows that an AR(1) describes the de-trended, seasonally adjusted time-series.
 
-```{r, prob2 pt p}
+```{r, prob1 pt p}
+#pull time-series p
 let <- "p"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot time-series
 autoplot(ts_test) +
   theme_minimal()
 
+#plot decomposition
 autoplot(decompose(ts_test, type = "additive")) + 
   theme_minimal()
 
+#store decomposition model
+decomp <- decompose(ts_test, type = "additive")
+
+#seasonally adjust (y - seasonal mean for m)
+ts_test <- ts_test - decomp$seasonal
+
+#estimate trend
+time <- 1:100
+lm_p <- lm(ts_test ~ time)
+
+#subtract estimated trend from seasonally-adjusted time-series
+ts_test <- ts_test - lm_p$coefficients[2]*time
+
+#still strong residual autocorrelation
 ggAcf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
 
+#suggests AR(1), phi = 0.95
 ggPacf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
@@ -521,44 +643,71 @@ ggPacf(ts_test) +
 
 ### Part q
 
-MA
+This time-series does shows a weak seasonal pattern, with a rough pattern of increase throughout the year but low January-February values. After adjusting the series by subtracting the estimated monthly means, there is a pretty clear pattern of autocorrelation in the ACF plot. The PACF plot suggests that the order of the AR(p) proecess is 2, with mild positive effects for both coefficients. I estimate the coefficient magnitudes for the AR terms to be about 0.4 and 0.2, respectively.
 
-```{r, prob2 pt q}
+```{r, prob1 pt q}
+#pull time-series q
 let <- "q"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot time-series
 autoplot(ts_test) +
   theme_minimal()
 
+#plot decomposition
 autoplot(decompose(ts_test, type = "additive")) + 
   theme_minimal()
 
+#store decomposition model
+decomp <- decompose(ts_test, type = "additive")
+
+#seasonally adjust (y - seasonal mean for m)
+ts_test <- ts_test - decomp$seasonal
+
+#plot seasonally-adjusted time-series
+autoplot(ts_test) +
+  theme_minimal()
+
+#dies off L6
 ggAcf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
 
+#only two, both positive
 ggPacf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
+
+#plot simulated AR(2) with phi_1 =4, phi_2 =.2
+#autoplot(arima.sim(list(order = c(2, 0, 0), ar= c(0.4, 0.2)), n = 100)) +
+#  labs(title = TeX("Simulated AR(2), $\\phi_1 = 0.4, \\phi_2 = 0.2$")) +
+#  theme_minimal()
 ```
 
 <br><hr><br>
 
 ### Part r
 
-positive trend, maybe AR
+The time-series plot and decomposition model both indicate a positive detemrinistic trend over the span of the time-series. After removing the trend, there is substantial autocorrelation at L1, but nothing systematic beyond that. The PACF also mostly corroborates that a MA(1) would be appropriate, with a moderate psi of about 0.5
 
-```{r, prob2 pt r}
+```{r, prob1 pt r}
+#pull time-series r
 let <- "r"
+ts_test <- ts(prob1[[let]], frequency = 12)
 
-ts_test <- ts(prob2[[let]], frequency = 12)
-
+#plot time-series
 autoplot(ts_test) +
   theme_minimal()
 
 autoplot(decompose(ts_test, type = "additive")) + 
   theme_minimal()
+
+#estimate trend
+time <- 1:100
+lm_r <- lm(ts_test ~ time)
+
+#subtract estimated trend from seasonally-adjusted time-series
+ts_test <- ts_test - lm_r$coefficients[2]*time
 
 ggAcf(ts_test) + 
   theme_minimal() + 
@@ -567,10 +716,368 @@ ggAcf(ts_test) +
 ggPacf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
+
 ```
 
 <br><hr><br>
 
+
+## Problem 2
+
+### Part s
+
+\begin{description}
+\item[at 20] AR(1) with phi = 1.0
+\item[at 100] non-stationary
+\item[overall] was not immediate clear but became so with just a little more data
+\end{description}
+
+```{r prob2 pt s, include = FALSE}
+#pull time-series s
+let <- "s"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#subset first 20
+ts_subset20 <- as.ts(ts_test[1:20])
+
+#plot time-series subset
+autoplot(ts_subset20) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset20)
+
+#subset first 100
+ts_subset100 <- as.ts(ts_test[1:100])
+
+#plot time-series subset
+autoplot(ts_subset100) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset100)
+
+#plot time-series in full
+autoplot(ts_test) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_test)
+```
+
+### Part t
+
+\begin{description}
+\item{at 20] looks not stationary
+\item{at 100] still looks non stationary
+\item[overall] stationary, AR(1) with phi = 0.8
+```{r prob2 pt t, include = FALSE}
+#pull time-series t
+let <- "t"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#subset first 20
+ts_subset20 <- as.ts(ts_test[1:20])
+
+#plot time-series subset
+autoplot(ts_subset20) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset20)
+
+#subset first 100
+ts_subset100 <- as.ts(ts_test[1:100])
+
+#plot time-series subset
+autoplot(ts_subset100) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset100)
+
+#plot time-series in full
+autoplot(ts_test) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_test)
+```
+
+### Part u
+
+\begin{description}
+\item[at 20] The ACFs don't show it, but the time-series plot suggests non-stationarity
+\item[at 100] harder to say, ACF/PACF say no as does ADF test
+\item[overall] turns out to just be a strong AR(1)
+\end{description}
+
+```{r prob2 pt u, include = FALSE}
+#pull time-series u
+let <- "u"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#subset first 20
+ts_subset20 <- as.ts(ts_test[1:20])
+
+#plot time-series subset
+autoplot(ts_subset20) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset20)
+
+#subset first 100
+ts_subset100 <- as.ts(ts_test[1:100])
+
+#plot time-series subset
+autoplot(ts_subset100) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset100)
+
+#plot time-series in full
+autoplot(ts_test) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_test)
+```
+
+### Part v
+
+\begin{description}
+\item[at 20] looks like it could be decreasing non-stationary, though the ACF/PACF don't quite show it. 
+\item[at 100] looks more likely to be increasing non-stationary, though ACF/PACF/dickey-fuller say stationary strong AR(1) with 0.95 phi
+\item[overall] it's clearly non-stationary
+\end{description}
+
+```{r prob2 pt v, include = FALSE}
+#pull time-series v
+let <- "v"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#subset first 20
+ts_subset20 <- as.ts(ts_test[1:20])
+
+#plot time-series subset
+autoplot(ts_subset20) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset20)
+
+#subset first 100
+ts_subset100 <- as.ts(ts_test[1:100])
+
+#plot time-series subset
+autoplot(ts_subset100) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset100)
+
+#plot time-series in full
+autoplot(ts_test) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_test)
+```
+
+### Part w
+
+\begin{description}
+\item[at 20] it looks stationary, moderate autocorrelation probably AR(1) or AR(2)
+\item[at 100] still looks pretty stationary, though there are cycles of increasing amplitude over the 100 periods. Could be AR(1) or AR(2) based on ACF/PACF
+\item[overall] Now it looks non-stationary, a conclusion supported by Dickey-Fuller test. 
+\end{description}
+
+```{r prob2 pt w, include = FALSE}
+#pull time-series w
+let <- "w"
+ts_test <- ts(prob2[[let]], frequency = 12)
+
+#subset first 20
+ts_subset20 <- as.ts(ts_test[1:20])
+
+#plot time-series subset
+autoplot(ts_subset20) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset20) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset20)
+
+#subset first 100
+ts_subset100 <- as.ts(ts_test[1:100])
+
+#plot time-series subset
+autoplot(ts_subset100) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_subset100) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_subset100)
+
+#plot time-series in full
+autoplot(ts_test) +
+  theme_minimal()
+
+#plot the ACF
+ggAcf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#plot the PACF
+ggPacf(ts_test) + 
+  theme_minimal() + 
+  labs(title = "")
+
+#dickey-fuller test
+tseries::adf.test(ts_test)
+```
+
+## Problem 3
 
 
 
