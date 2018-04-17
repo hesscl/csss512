@@ -4,6 +4,7 @@ author: "Chris Hess"
 output: 
   pdf_document:
     toc: true
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE, echo=F, warning=F}
@@ -20,6 +21,10 @@ prob2 <- read_csv(curl("https://faculty.washington.edu/cadolph/panUW/mysterytsUW
 ```
 
 <br><br>
+
+NB: The ACF/PACF plots start at lag = 1, not lag = 0 like `with plot(acf(ts))`
+
+\newpage
 
 ## Problem 1
 
@@ -57,7 +62,7 @@ autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.15, -0.5)), n = 100)) +
   theme_minimal()
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part b
 
@@ -98,7 +103,7 @@ autoplot(ts_test) +
 #  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part c
 
@@ -143,7 +148,7 @@ autoplot(ts_test) +
 #  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part d
 
@@ -184,7 +189,7 @@ autoplot(arima.sim(list(order = c(0, 0, 1), ma = c(0.5)), n = 100)) +
 #  theme_minimal()
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part e
 
@@ -211,7 +216,7 @@ ggAcf(ts_test) +
 #  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part f
 
@@ -256,7 +261,7 @@ autoplot(ts_test) +
 #  theme_minimal()
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part g
 
@@ -286,7 +291,7 @@ autoplot(arima.sim(list(order = c(1, 0, 0), ar = c(0.75)), n = 100)) +
   labs(title = TeX("Simulated AR(1), $\\phi = 0.75$"))
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part h
 
@@ -317,7 +322,7 @@ autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.4, -0.2)), n = 100)) +
   labs(title = TeX("Simulated MA(2), $\\psi_1 = 0.4, \\psi_2 = -0.2$")) 
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part i
 
@@ -348,7 +353,7 @@ ggPacf(ts_test) +
   labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part j
 
@@ -390,7 +395,7 @@ autoplot(ts_test) +
 #  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part k
 
@@ -433,7 +438,7 @@ autoplot(ts_test) +
 #  theme_minimal()
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part l
 
@@ -464,7 +469,7 @@ ggAcf(ts_test) +
 #  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 > ** Multiple time-series characteristics ahead! **
 
@@ -510,12 +515,12 @@ ggAcf(ts_test) +
 #  labs(title = "PACF for seasonally-adjusted time-series m")
 
 #plot the simulated MA(2), psi_1 = 0.5, psi_2 = -.45
-autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.5, -0.45)), n = 100)) +
-  theme_minimal() +
-  labs(title = TeX("Simulated MA(2), $\\psi_1 = 0.5, \\psi_2 = -0.45$"))
+#autoplot(arima.sim(list(order = c(0, 0, 2), ma = c(0.5, -0.45)), n = 100)) +
+#  theme_minimal() +
+#  labs(title = TeX("Simulated MA(2), $\\psi_1 = 0.5, \\psi_2 = -0.45$"))
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part n
 
@@ -545,15 +550,15 @@ ts_test <- ts_test - lm_n$coefficients[2]*time
 #still autocorrelation in the detrended data
 ggAcf(ts_test) + 
   theme_minimal() + 
-   labs(title = "")
+  labs(title = "ACF of detrended time-series n")
 
 #looks like AR(1) is apprporiate
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggPacf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part o
 
@@ -565,8 +570,8 @@ let <- "o"
 ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
-autoplot(ts_test) +
-  theme_minimal()
+#autoplot(ts_test) +
+#  theme_minimal()
 
 #plot decomposition model
 autoplot(decompose(ts_test, type = "additive")) + 
@@ -575,7 +580,7 @@ autoplot(decompose(ts_test, type = "additive")) +
 #store decomposition model
 decomp <- decompose(ts_test, type = "additive")
 
-#seasonally adjust (y - seasonal mean for m)
+#seasonally adjust (y - seasonal mean for o)
 ts_test <- ts_test - decomp$seasonal
 
 #looks like trend, let's estimate the monthly trend
@@ -588,15 +593,16 @@ ts_test <- ts_test - lm_o$coefficients[2]*time
 
 #plot detrended, seasonally-adjusted time-series
 autoplot(ts_test) +
-  theme_minimal()
+  theme_minimal() +
+  labs(title = "De-trended, seasonally-adjusted time-series o")
 
 #no autocorrelation
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part p
 
@@ -608,17 +614,17 @@ let <- "p"
 ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
-autoplot(ts_test) +
-  theme_minimal()
+#autoplot(ts_test) +
+#  theme_minimal()
 
 #plot decomposition
-autoplot(decompose(ts_test, type = "additive")) + 
-  theme_minimal()
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
 
 #store decomposition model
 decomp <- decompose(ts_test, type = "additive")
 
-#seasonally adjust (y - seasonal mean for m)
+#seasonally adjust (y - seasonal mean for p)
 ts_test <- ts_test - decomp$seasonal
 
 #estimate trend
@@ -631,15 +637,15 @@ ts_test <- ts_test - lm_p$coefficients[2]*time
 #still strong residual autocorrelation
 ggAcf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+  labs(title = "ACF of detrended, seasonally-adjusted time-series p")
 
 #suggests AR(1), phi = 0.95
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggPacf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part q
 
@@ -652,31 +658,32 @@ ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
 autoplot(ts_test) +
-  theme_minimal()
+  theme_minimal() + 
+  labs(title = "Observed time-series q")
 
 #plot decomposition
-autoplot(decompose(ts_test, type = "additive")) + 
-  theme_minimal()
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
 
 #store decomposition model
 decomp <- decompose(ts_test, type = "additive")
 
-#seasonally adjust (y - seasonal mean for m)
+#seasonally adjust (y - seasonal mean for q)
 ts_test <- ts_test - decomp$seasonal
 
 #plot seasonally-adjusted time-series
-autoplot(ts_test) +
-  theme_minimal()
+#autoplot(ts_test) +
+#  theme_minimal()
 
 #dies off L6
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 
 #only two, both positive
 ggPacf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+  labs(title = "PACF of seasonally-adjusted time-series q")
 
 #plot simulated AR(2) with phi_1 =4, phi_2 =.2
 #autoplot(arima.sim(list(order = c(2, 0, 0), ar= c(0.4, 0.2)), n = 100)) +
@@ -684,7 +691,7 @@ ggPacf(ts_test) +
 #  theme_minimal()
 ```
 
-<br><hr><br>
+\newpage
 
 ### Part r
 
@@ -696,11 +703,11 @@ let <- "r"
 ts_test <- ts(prob1[[let]], frequency = 12)
 
 #plot time-series
-autoplot(ts_test) +
-  theme_minimal()
+#autoplot(ts_test) +
+#  theme_minimal()
 
-autoplot(decompose(ts_test, type = "additive")) + 
-  theme_minimal()
+#autoplot(decompose(ts_test, type = "additive")) + 
+#  theme_minimal()
 
 #estimate trend
 time <- 1:100
@@ -709,17 +716,17 @@ lm_r <- lm(ts_test ~ time)
 #subtract estimated trend from seasonally-adjusted time-series
 ts_test <- ts_test - lm_r$coefficients[2]*time
 
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "ACF of detrended time-series r")
 
 ggPacf(ts_test) + 
   theme_minimal() + 
-  labs(title = "")
+  labs(title = "PACF of detrended time-series r")
 
 ```
 
-<br><hr><br>
+\newpage
 
 
 ## Problem 2
@@ -727,9 +734,9 @@ ggPacf(ts_test) +
 ### Part s
 
 \begin{description}
-\item[at 20] AR(1) with phi = 1.0
-\item[at 100] non-stationary
-\item[overall] was not immediate clear but became so with just a little more data
+  \item[at 20] AR(1) with phi = .75. It seems like it could be stationary with a mean around 5 (knowing nothing else about the DGP), so it'd be a little early to rule non-stationary. The Dickey-Fuller test said non-stationary, though it could just be because the data length was short.
+  \item[at 100] At this point I'd say AR(1) wiith $\phi = 1.0$ because the ACF/PACF will be unreliable in the presence of non-stationarity. I am more certain about ruling the ACF/PACF as unreliable because the time-series shows substantial autocorrelation and no apparent reversion to a mean over 100 observations. The Dickey-Fuller test was still not significant with 100 observations, so more evidence in favor of non-stationarity.
+  \item[overall] It was not immediate clear before but it became very clear that this is a random-walk, i.e. AR(1) with $\phi = 1.0$ using the full time-series. The ACF is so close to 1.0 that it should raise eyebrows alone, and the test of stationarity still points in favor of the opposite conclusion.
 \end{description}
 
 ```{r prob2 pt s, include = FALSE}
@@ -798,9 +805,11 @@ tseries::adf.test(ts_test)
 ### Part t
 
 \begin{description}
-\item{at 20] looks not stationary
-\item{at 100] still looks non stationary
-\item[overall] stationary, AR(1) with phi = 0.8
+  \item[at 20] This subset looks stationary with a mean of -1, probably an AR(1) with $\phi = 0.25$ or so. Though the Dicker-fuller does suggest non-stationarity, it seems difficult to bank on that with relatively short data.
+  \item[at 100] This subset still looks stationary with a mean of -1, an AR(1) with $\phi = 0.75$. So more clearly autoregressive.
+  \item[overall] Definitely stationary although the DGP mean looks to be 0 not -1, AR(1) with phi = 0.8 seems appropriate. I am more certaint to conclude it now since there are two clear signs (i.e. ts plot and Dickey-Fuller).
+\end{description}
+
 ```{r prob2 pt t, include = FALSE}
 #pull time-series t
 let <- "t"
@@ -867,9 +876,9 @@ tseries::adf.test(ts_test)
 ### Part u
 
 \begin{description}
-\item[at 20] The ACFs don't show it, but the time-series plot suggests non-stationarity
-\item[at 100] harder to say, ACF/PACF say no as does ADF test
-\item[overall] turns out to just be a strong AR(1)
+  \item[at 20] The time-series plot suggests non-stationarity, but this is admittedly a tough call since it makes some strong bounces away from 0 (which is what the mean looks like it'd be if stationary). I'd say AR(1) with $\phi = 1.0$ right now. The ACFs show very strong autocorrelation despite short data, and would be unreliable if there is a unit root. 
+  \item[at 100] Harder to say now, the first subset might have just been part of a cyclical pattern _or_ might instead be random walks far in the negative direction that moved positive and stayed there for most of the other 80 observations. ACF/PACF say AR(1) with $\phi = 0.95$ and mean of 0, but at this point I think I'd still conclude it is AR(1) with $\phi = 1.0$
+  \item[overall] Over the 1000 observations, it does turn out to just be a strong AR(1) with $\phi = .95$ and mean of 0. It is clearer that some of the variability (increase with some cyclical descrease) was part of a seasonal structure.
 \end{description}
 
 ```{r prob2 pt u, include = FALSE}
@@ -938,9 +947,9 @@ tseries::adf.test(ts_test)
 ### Part v
 
 \begin{description}
-\item[at 20] looks like it could be decreasing non-stationary, though the ACF/PACF don't quite show it. 
-\item[at 100] looks more likely to be increasing non-stationary, though ACF/PACF/dickey-fuller say stationary strong AR(1) with 0.95 phi
-\item[overall] it's clearly non-stationary
+  \item[at 20] With only 20 observations it is very hard to judge. It could be non-stationary AR(1) with $\phi = 1.0$, but at the same time it could have a mean of 0 and just be bouncing away temporarily. Not knowing anything else about the data I would be cautious about taking the ACF at face value given the observed time-series
+  \item[at 100] Now it looks more likely to be non-stationary, though ACF/PACF/dickey-fuller say stationary with _really_ strong AR(1) with 0.95 phi. The strong deviations from 0 (seemingly the mean) suggest that the time-series is non-stationary and likely an AR(1) process
+  \item[overall] With the 1000 observations, it's clearly non-stationary
 \end{description}
 
 ```{r prob2 pt v, include = FALSE}
@@ -1009,9 +1018,9 @@ tseries::adf.test(ts_test)
 ### Part w
 
 \begin{description}
-\item[at 20] it looks stationary, moderate autocorrelation probably AR(1) or AR(2)
-\item[at 100] still looks pretty stationary, though there are cycles of increasing amplitude over the 100 periods. Could be AR(1) or AR(2) based on ACF/PACF
-\item[overall] Now it looks non-stationary, a conclusion supported by Dickey-Fuller test. 
+  \item[at 20] It looks stationary, like the prior period has some importance/moderate autocorrelation probably AR(1) with $\phi = .55$
+  \item[at 100] The 100 observation subset looks less stationary because the series is spending long time stretches away from the mean (which now seems like it'd be zero). Though there are cycles of increasing amplitude over the 100 periods, I think I'd conclude AR(1) with $\phi = 1.0$ based on the ACF/PACF and Dickey-Fuller test. Though the PACF shows there could be a second-order term, this could also be unreliability from non-stationarity or a significant L2 just due to chance (i.e. a more parsimonious explanation seems merited given the evidence).
+  \item[overall] It looks non-stationary based on the overall plot because there's no clear structure of how the prior day(s) or cycles matter for t+1 and there's not a clear pattern of mean reversion either (though the series does pass 0 a few times). This conclusion is supported by Dickey-Fuller test. The ACF/PACF are so close to 1.0, it would seem tenuous to accept them on face value here.
 \end{description}
 
 ```{r prob2 pt w, include = FALSE}
@@ -1069,7 +1078,7 @@ ggAcf(ts_test) +
   labs(title = "")
 
 #plot the PACF
-ggPacf(ts_test) + 
+  ggPacf(ts_test) + 
   theme_minimal() + 
   labs(title = "")
 
