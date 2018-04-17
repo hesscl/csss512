@@ -5,6 +5,11 @@ output:
   pdf_document:
     toc: true
     toc_depth: 3
+geometry: "left = 1in, right = 1in, top = 1in, bottom = 1in"
+header-includes:
+  - \usepackage{graphicx}
+  - \usepackage{float}
+
 ---
 
 ```{r setup, include=FALSE, echo=F, warning=F}
@@ -348,9 +353,9 @@ ggAcf(ts_test) +
   labs(title = "")
 
 #plot the PACF
-ggPacf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "")
+#ggPacf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "")
 ```
 
 \newpage
@@ -442,7 +447,7 @@ autoplot(ts_test) +
 
 ### Part l
 
-The time-series plot suggests some it _may_ be a moving average process. However, the ACF does not provide the expected geometric decline in autocorrelation for an AR(p) process, or show any autocorrelation in the short term as might be expected for moving-averages. Further, the PACF does not have a substantial lag anywhere from L1 to L24. Based on all the evidence gathered, the most appropriate conclusion seems to be that this time-series is stationary white noise.
+The time-series plot suggests it is a strong autoregressive process where prior period levels are important for predicing t+1. The ACF provides the expected geometric decline in autocorrelation for an AR(p) process. Further, the PACF shows that this series is an AR(1) with $\phi = 0.9$.
 
 ```{r, prob1 pt l}
 #pull time-series l
@@ -505,9 +510,9 @@ autoplot(ts_test) +
   theme_minimal()
 
 #seasonally-adjusted ACF
-ggAcf(ts_test) + 
-  theme_minimal() + 
-  labs(title = "ACF for seasonally-adjusted time-series m")
+#ggAcf(ts_test) + 
+#  theme_minimal() + 
+#  labs(title = "ACF for seasonally-adjusted time-series m")
 
 #seasonally-adjusted PACF
 #ggPacf(ts_test) +
@@ -695,7 +700,7 @@ ggPacf(ts_test) +
 
 ### Part r
 
-The time-series plot and decomposition model both indicate a positive detemrinistic trend over the span of the time-series. After removing the trend, there is substantial autocorrelation at L1, but nothing systematic beyond that. The PACF also mostly corroborates that a MA(1) would be appropriate, with a moderate psi of about 0.5
+The time-series plot and decomposition model both seem to indicate a positive detemrinistic trend over the span of the time-series. After removing the trend, there is substantial autocorrelation at L1, but nothing systematic beyond that. At this point, the non-geometric decline in autocorrelation suggests a moving-average process. The PACF mostly corroborates that a MA(3) would be appropriate, with a moderate $\psi_1$ of about 0.5 and two small higher-order terms with values around .20.
 
 ```{r, prob1 pt r}
 #pull time-series r
@@ -877,7 +882,7 @@ tseries::adf.test(ts_test)
 
 \begin{description}
   \item[at 20] The time-series plot suggests non-stationarity, but this is admittedly a tough call since it makes some strong bounces away from 0 (which is what the mean looks like it'd be if stationary). I'd say AR(1) with $\phi = 1.0$ right now. The ACFs show very strong autocorrelation despite short data, and would be unreliable if there is a unit root. 
-  \item[at 100] Harder to say now, the first subset might have just been part of a cyclical pattern _or_ might instead be random walks far in the negative direction that moved positive and stayed there for most of the other 80 observations. ACF/PACF say AR(1) with $\phi = 0.95$ and mean of 0, but at this point I think I'd still conclude it is AR(1) with $\phi = 1.0$
+  \item[at 100] Harder to say now, the first subset might have just been part of a cyclical pattern\emph{or} might instead be random walks far in the negative direction that moved positive and stayed there for most of the other 80 observations. ACF/PACF say AR(1) with $\phi = 0.95$ and mean of 0, but at this point I think I'd still conclude it is AR(1) with $\phi = 1.0$
   \item[overall] Over the 1000 observations, it does turn out to just be a strong AR(1) with $\phi = .95$ and mean of 0. It is clearer that some of the variability (increase with some cyclical descrease) was part of a seasonal structure.
 \end{description}
 
@@ -948,7 +953,7 @@ tseries::adf.test(ts_test)
 
 \begin{description}
   \item[at 20] With only 20 observations it is very hard to judge. It could be non-stationary AR(1) with $\phi = 1.0$, but at the same time it could have a mean of 0 and just be bouncing away temporarily. Not knowing anything else about the data I would be cautious about taking the ACF at face value given the observed time-series
-  \item[at 100] Now it looks more likely to be non-stationary, though ACF/PACF/dickey-fuller say stationary with _really_ strong AR(1) with 0.95 phi. The strong deviations from 0 (seemingly the mean) suggest that the time-series is non-stationary and likely an AR(1) process
+  \item[at 100] Now it looks more likely to be non-stationary, though ACF/PACF/dickey-fuller say stationary with \emph{really} strong AR(1) with 0.95 phi. The strong deviations from 0 (seemingly the mean) suggest that the time-series is non-stationary and likely an AR(1) process
   \item[overall] With the 1000 observations, it's clearly non-stationary
 \end{description}
 
@@ -1086,12 +1091,43 @@ ggAcf(ts_test) +
 tseries::adf.test(ts_test)
 ```
 
+\newpage
+
 ## Problem 3
 
+  My proposed research design is to model a quarterly panel of census tract neighborhood rent levels for the Seattle area (maybe King County as a whole). For about the past year, a team of collaborators and I have been scraping Craigslist to generate a database of unique rental housing listings. The outcomes will accordingly be the neighborhood median estimates for rent asked by specific bedroom sizes. We will have 4 periods for T (Qtr 2,3,4 2017, Q1 2018). I intend to first model differences in these distributions using spatio-temporal smoothing, i.e. no covariates and just subject-specific adjustments for spatial structure, temporal structure and their interaction. After generating spatially-and-temporally smoothed estimates of neighborhood rent distributions for the metropolitan area, I will compare these with existing data sources to assess agreement between model-based CL estimates and existing (largely for-profit) data sources (see after this problem for a few examples of existing comparisons). I plan to use `INLA` to estimate these Bayesian models. This qualifies as a prediction problem more than an explanation problem as currentl devised, so I'd like to demonstrate agreement but also investigate the places where there is substantial disagreement between measures. The data are somewhat unusual in their sampling strategy, i.e. scraping web data, rather than surveying landlords about what they charge their tenants. Figure 1 shows a time-series heatmap for our unique listings collected per day for the Seattle area.
 
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = .8\linewidth]{timeseries.pdf}
+\caption{Time-series heatmap of Craigslist rental housing listings}
+\end{center}
+\end{figure}
 
+While we have increasing confidence that we are sampling all of what's on Craigslist at our current stage, earlier in our project we no doubt were missing some listings since our scraper was less robust to page changes and we had more downtime in general. As such, we have some missing data when looking at the city overall because the scraper was down, and when looking at neighborhoods there are some neighborhoods where we have much fewer listings. Some of this is potentially due to process, but we also find evidence of variations in neighborhood listing activity. Spatial and non-spatial Poisson models find that the listings generally follow characteristics of the housing stock (i.e. more units -> more listings, more owner-occupied HU -> fewer listings) but there's a strong pattern of listing activity being negatively associated with neighborhood poverty and to a lesser degree the size of the foreign-born population. So while there is not missing data in many tracts, there do seem to be substantial heterogeneity in the use of Craigslist versus using word-of-mouth or physical advertisements (the theoretical housing search mechanisms in these areas). The goal of space/time smoothing is to adjust our estimates to most efficiently use all 
 
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = .8\linewidth]{clACF.pdf}
+\caption{ACF of Craigslist median rent time-series}
+\end{center}
+\end{figure}
 
+  I believe that there is autoregression in the panel data given my investigation of the city-wide median rent level as a daily time-series. Figure 2 shows the ACF for this citywide median daily time-series, and you can see a strong autoregressive process with some weekly seasonality. I have not yet looked at whether this is the case for the panel of Seattle neighborhoods, but expect even with aggregating to a larger T there will be autocorrelation (though the weekly cycles will be averaged out.). It is hard to imagine a scenario where a future quarter's rent value would not still by highly predicted by the prior quarter's level or shock. The focal GM assumptions that would be violated in running a linear regression are serial correlation and heteroskedasticity since there's both temporal and spatial structure present in the panel data. Treating observations of the same unit or of different units as having the same error around them ignores the serial correlation within units and the spatial configuration between units.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = .8\linewidth]{cl-csGrpMedScatterSea.pdf}
+\caption{Craigslist / Apartments.com-CoStar comparison (zipcode level)}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = .8\linewidth]{cl-dsMedCompare.pdf}
+\caption{Craigslist / Dupre+Scott comparison (tract level)}
+\end{center}
+\end{figure}
 
 
 
